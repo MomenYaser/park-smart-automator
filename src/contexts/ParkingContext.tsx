@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { 
   ParkingState, 
@@ -7,7 +8,8 @@ import {
   VehicleType,
   ParkingHistory,
   calculateFee,
-  ParkingRates
+  ParkingRates,
+  updateRatesAction
 } from '../models/ParkingModels';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
