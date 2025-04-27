@@ -38,7 +38,7 @@ export interface ParkingState {
 }
 
 export interface ParkingAction {
-  type: 'CREATE_LOTS' | 'ENTER_VEHICLE' | 'EXIT_VEHICLE' | 'SET_PAID';
+  type: 'CREATE_LOTS' | 'ENTER_VEHICLE' | 'EXIT_VEHICLE' | 'SET_PAID' | 'UPDATE_RATES';
   payload: any;
 }
 
@@ -77,7 +77,13 @@ export const setPaidAction = (historyId: string): ParkingAction => {
   };
 };
 
-// Fee calculation logic
+export const updateRatesAction = (rates: ParkingRates): ParkingAction => {
+  return {
+    type: 'UPDATE_RATES',
+    payload: { rates }
+  };
+};
+
 export const calculateFee = (
   vehicle: VehicleType, 
   startTime: Date, 
@@ -91,7 +97,6 @@ export const calculateFee = (
   return durationHours * hourlyRate;
 };
 
-// Format duration in hours and minutes
 export const formatDuration = (startTime: Date, endTime: Date): string => {
   const durationMs = endTime.getTime() - startTime.getTime();
   const hours = Math.floor(durationMs / (1000 * 60 * 60));

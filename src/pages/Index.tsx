@@ -7,6 +7,7 @@ import VehicleExit from '@/components/VehicleExit';
 import ParkingStatus from '@/components/ParkingStatus';
 import RevenueDisplay from '@/components/RevenueDisplay';
 import ParkingHistory from '@/components/ParkingHistory';
+import RateManager from '@/components/RateManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -19,18 +20,22 @@ const AppContent = () => {
   return (
     <>
       <Navbar />
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 space-y-6">
+          <div className="md:col-span-2">
+            <RevenueDisplay />
+          </div>
+          <div>
+            <RateManager />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2">
             <ParkingStatus />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <RevenueDisplay />
-              <div className="h-full">
-                <ParkingLotSetup />
-              </div>
-            </div>
           </div>
           <div className="space-y-6">
+            <ParkingLotSetup />
             <Tabs defaultValue="enter">
               <TabsList className="w-full">
                 <TabsTrigger value="enter" className="flex-1">{t('enterVehicle')}</TabsTrigger>
@@ -46,7 +51,7 @@ const AppContent = () => {
           </div>
         </div>
         
-        <div className="mt-8">
+        <div>
           <ParkingHistory />
         </div>
       </div>

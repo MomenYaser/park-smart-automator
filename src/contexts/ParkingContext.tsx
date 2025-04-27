@@ -6,7 +6,8 @@ import {
   Vehicle, 
   VehicleType,
   ParkingHistory,
-  calculateFee
+  calculateFee,
+  ParkingRates
 } from '../models/ParkingModels';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
@@ -205,6 +206,14 @@ const parkingReducer = (state: ParkingState, action: ParkingAction): ParkingStat
       };
     }
     
+    case 'UPDATE_RATES': {
+      const { rates } = action.payload;
+      return {
+        ...state,
+        rates
+      };
+    }
+    
     default:
       return state;
   }
@@ -216,6 +225,7 @@ interface ParkingContextType {
   enterVehicle: (vehicleType: VehicleType, licensePlate: string, timestamp: Date) => { success: boolean; lotId?: number };
   exitVehicle: (licensePlate: string, timestamp: Date) => { success: boolean; lotId?: number; fee?: number };
   setPaid: (historyId: string) => void;
+  updateRates: (rates: ParkingRates) => void;
 }
 
 const ParkingContext = createContext<ParkingContextType | undefined>(undefined);
@@ -371,8 +381,20 @@ export const ParkingProvider = ({ children }: { children: ReactNode }) => {
     toast.success(t('paymentSuccessful'));
   };
   
+  const updateRates = (rates: ParkingRates) => {
+    dispatch(updateRatesAction(rates));
+    toast.success(t('ratesUpdated'));
+  };
+
   return (
-    <ParkingContext.Provider value={{ state, createLots, enterVehicle, exitVehicle, setPaid }}>
+    <ParkingContext.Provider value={{ 
+      state, 
+      createLots, 
+      enterVehicle, 
+      exitVehicle, 
+      setPaid,
+      updateRates 
+    }}>
       {children}
     </ParkingContext.Provider>
   );
