@@ -1,15 +1,24 @@
-
 import React from 'react';
 import { useParking } from '@/contexts/ParkingContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { formatDuration } from '@/models/ParkingModels';
-import { CheckCircle, Clock, Car, Bike } from 'lucide-react';
+import { CheckCircle, Clock, Car, Bike, Trash2, X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const ParkingHistory = () => {
-  const { state, setPaid } = useParking();
-  const { t, isRtl } = useLanguage();
+  const { state, setPaid, deleteHistoryEntry, clearAllHistory } = useParking();
+  const { t } = useLanguage();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
   // Sort history entries: most recent entries first, then by exit time (null/most recent first)
   const sortedHistory = [...state.history].sort((a, b) => {
@@ -31,12 +40,46 @@ const ParkingHistory = () => {
 
   return (
     <Card className="dashboard-card">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{t('parkingHistory')}</CardTitle>
+        {state.history.length > 0 && (
+          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="destructive" size="sm">
+                <Trash2 className="mr-2" />
+                {t('clearHistory')}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t('clearHistoryConfirmation')}</DialogTitle>
+                <DialogDescription>
+                  {t('clearHistoryWarning')}
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                  <X className="mr-2" />
+                  {t('cancel')}
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={() => {
+                    clearAllHistory();
+                    setIsDeleteDialogOpen(false);
+                  }}
+                >
+                  <Trash2 className="mr-2" />
+                  {t('confirmClear')}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          {sortedHistory.length > 0 ? (
+          {state.history.length > 0 ? (
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">
@@ -64,7 +107,7 @@ const ParkingHistory = () => {
                       data-lot={entry.lotId}
                     >
                       <td className="py-2 px-1">
-                        <div className="flex items-center">
+                        <div className="flex items-center gap-2">
                           {isActive && <Clock className="h-3 w-3 mr-2 text-amber-500" />}
                           {entry.licensePlate}
                         </div>

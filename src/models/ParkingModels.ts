@@ -38,7 +38,7 @@ export interface ParkingState {
 }
 
 export interface ParkingAction {
-  type: 'CREATE_LOTS' | 'ENTER_VEHICLE' | 'EXIT_VEHICLE' | 'SET_PAID' | 'UPDATE_RATES';
+  type: 'CREATE_LOTS' | 'ENTER_VEHICLE' | 'EXIT_VEHICLE' | 'SET_PAID' | 'UPDATE_RATES' | 'DELETE_HISTORY_ENTRY' | 'CLEAR_ALL_HISTORY';
   payload: any;
 }
 
@@ -81,6 +81,20 @@ export const updateRatesAction = (rates: ParkingRates): ParkingAction => {
   return {
     type: 'UPDATE_RATES',
     payload: { rates }
+  };
+};
+
+export const deleteHistoryEntryAction = (historyId: string): ParkingAction => {
+  return {
+    type: 'DELETE_HISTORY_ENTRY',
+    payload: { historyId }
+  };
+};
+
+export const clearAllHistoryAction = (): ParkingAction => {
+  return {
+    type: 'CLEAR_ALL_HISTORY',
+    payload: {}
   };
 };
 

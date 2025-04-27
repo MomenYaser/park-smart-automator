@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { 
   ParkingState, 
@@ -9,7 +8,9 @@ import {
   ParkingHistory,
   calculateFee,
   ParkingRates,
-  updateRatesAction
+  updateRatesAction,
+  deleteHistoryEntryAction,
+  clearAllHistoryAction
 } from '../models/ParkingModels';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
@@ -216,6 +217,21 @@ const parkingReducer = (state: ParkingState, action: ParkingAction): ParkingStat
       };
     }
     
+    case 'DELETE_HISTORY_ENTRY': {
+      const { historyId } = action.payload;
+      return {
+        ...state,
+        history: state.history.filter(entry => entry.id !== historyId)
+      };
+    }
+    
+    case 'CLEAR_ALL_HISTORY': {
+      return {
+        ...state,
+        history: []
+      };
+    }
+    
     default:
       return state;
   }
@@ -228,6 +244,8 @@ interface ParkingContextType {
   exitVehicle: (licensePlate: string, timestamp: Date) => { success: boolean; lotId?: number; fee?: number };
   setPaid: (historyId: string) => void;
   updateRates: (rates: ParkingRates) => void;
+  deleteHistoryEntry: (historyId: string) => void;
+  clearAllHistory: () => void;
 }
 
 const ParkingContext = createContext<ParkingContextType | undefined>(undefined);
@@ -236,14 +254,12 @@ export const ParkingProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(parkingReducer, initialState);
   const { t } = useLanguage();
   
-  // Load state from localStorage on initial render
   useEffect(() => {
     const savedState = localStorage.getItem('parkingState');
     if (savedState) {
       try {
         const parsedState = JSON.parse(savedState);
         
-        // Convert date strings back to Date objects
         const processedHistory = parsedState.history.map((entry: any) => ({
           ...entry,
           entryTime: new Date(entry.entryTime),
@@ -266,7 +282,6 @@ export const ParkingProvider = ({ children }: { children: ReactNode }) => {
           } : null
         }));
         
-        // Dispatch processed state to reducer
         dispatch({
           type: 'CREATE_LOTS',
           payload: { 
@@ -275,7 +290,6 @@ export const ParkingProvider = ({ children }: { children: ReactNode }) => {
           }
         });
         
-        // Manual state setup for the complex objects
         state.carLots = processedCarLots;
         state.motorcycleLots = processedMotorcycleLots;
         state.history = processedHistory;
@@ -286,7 +300,6 @@ export const ParkingProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
   
-  // Save state to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('parkingState', JSON.stringify(state));
   }, [state]);
@@ -300,7 +313,6 @@ export const ParkingProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const enterVehicle = (vehicleType: VehicleType, licensePlate: string, timestamp: Date) => {
-    // Validate if lots exist
     if (
       (vehicleType === 'Car' && state.carLots.length === 0) ||
       (vehicleType === 'Motorcycle' && state.motorcycleLots.length === 0)
@@ -309,7 +321,6 @@ export const ParkingProvider = ({ children }: { children: ReactNode }) => {
       return { success: false };
     }
     
-    // Check if vehicle is already parked
     const isAlreadyParked = [...state.carLots, ...state.motorcycleLots].some(
       lot => lot.isOccupied && lot.vehicle?.licensePlate === licensePlate
     );
@@ -319,7 +330,6 @@ export const ParkingProvider = ({ children }: { children: ReactNode }) => {
       return { success: false };
     }
     
-    // Find the first available lot for the vehicle type
     const targetLots = vehicleType === 'Car' ? state.carLots : state.motorcycleLots;
     const availableLot = targetLots.find(lot => !lot.isOccupied);
     
@@ -338,7 +348,6 @@ export const ParkingProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const exitVehicle = (licensePlate: string, timestamp: Date) => {
-    // Find the vehicle in the lots
     let foundLot: ParkingLot | undefined;
     
     const carLotWithVehicle = state.carLots.find(
@@ -358,7 +367,6 @@ export const ParkingProvider = ({ children }: { children: ReactNode }) => {
       return { success: false };
     }
     
-    // Calculate fee with rates
     const fee = calculateFee(
       foundLot.vehicle.type, 
       foundLot.vehicle.entryTime, 
@@ -387,6 +395,16 @@ export const ParkingProvider = ({ children }: { children: ReactNode }) => {
     dispatch(updateRatesAction(rates));
     toast.success(t('ratesUpdated'));
   };
+  
+  const deleteHistoryEntry = (historyId: string) => {
+    dispatch(deleteHistoryEntryAction(historyId));
+    toast.success(t('historyEntryDeleted'));
+  };
+  
+  const clearAllHistory = () => {
+    dispatch(clearAllHistoryAction());
+    toast.success(t('allHistoryCleared'));
+  };
 
   return (
     <ParkingContext.Provider value={{ 
@@ -395,7 +413,9 @@ export const ParkingProvider = ({ children }: { children: ReactNode }) => {
       enterVehicle, 
       exitVehicle, 
       setPaid,
-      updateRates 
+      updateRates,
+      deleteHistoryEntry,
+      clearAllHistory
     }}>
       {children}
     </ParkingContext.Provider>
