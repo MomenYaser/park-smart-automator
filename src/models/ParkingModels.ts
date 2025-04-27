@@ -1,4 +1,3 @@
-
 export type VehicleType = 'Car' | 'Motorcycle';
 
 export interface Vehicle {
@@ -25,11 +24,17 @@ export interface ParkingHistory {
   isPaid: boolean;
 }
 
+export interface ParkingRates {
+  carHourlyRate: number;
+  motorcycleHourlyRate: number;
+}
+
 export interface ParkingState {
   carLots: ParkingLot[];
   motorcycleLots: ParkingLot[];
   history: ParkingHistory[];
   revenue: number;
+  rates: ParkingRates;
 }
 
 export interface ParkingAction {
@@ -73,11 +78,16 @@ export const setPaidAction = (historyId: string): ParkingAction => {
 };
 
 // Fee calculation logic
-export const calculateFee = (vehicle: VehicleType, startTime: Date, endTime: Date): number => {
+export const calculateFee = (
+  vehicle: VehicleType, 
+  startTime: Date, 
+  endTime: Date,
+  rates: ParkingRates
+): number => {
   const durationMs = endTime.getTime() - startTime.getTime();
   const durationHours = Math.ceil(durationMs / (1000 * 60 * 60)); // Round up to the nearest hour
   
-  const hourlyRate = vehicle === 'Car' ? 2 : 1;
+  const hourlyRate = vehicle === 'Car' ? rates.carHourlyRate : rates.motorcycleHourlyRate;
   return durationHours * hourlyRate;
 };
 

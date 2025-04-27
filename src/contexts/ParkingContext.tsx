@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { 
   ParkingState, 
@@ -17,7 +16,11 @@ const initialState: ParkingState = {
   carLots: [],
   motorcycleLots: [],
   history: [],
-  revenue: 0
+  revenue: 0,
+  rates: {
+    carHourlyRate: 2,
+    motorcycleHourlyRate: 1
+  }
 };
 
 const parkingReducer = (state: ParkingState, action: ParkingAction): ParkingState => {
@@ -128,11 +131,12 @@ const parkingReducer = (state: ParkingState, action: ParkingAction): ParkingStat
         return state;
       }
       
-      // Calculate fee
+      // Calculate fee with rates
       const fee = calculateFee(
         foundLot.vehicle.type, 
         foundLot.vehicle.entryTime, 
-        exitTime
+        exitTime,
+        state.rates
       );
       
       // Free up the lot
@@ -342,11 +346,12 @@ export const ParkingProvider = ({ children }: { children: ReactNode }) => {
       return { success: false };
     }
     
-    // Calculate fee
+    // Calculate fee with rates
     const fee = calculateFee(
       foundLot.vehicle.type, 
       foundLot.vehicle.entryTime, 
-      timestamp
+      timestamp,
+      state.rates
     );
     
     dispatch({
